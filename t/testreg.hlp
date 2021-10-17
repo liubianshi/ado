@@ -1,0 +1,116 @@
+{smcl}
+{* *! version 1.9.0 10jan2017}{...}
+{vieweralsosee "reghdfe" "help reghdfe"}{...}
+{vieweralsosee "esttab" "help esttab"}{...}
+
+{title:Title}
+
+{p2colset 5 16 2 2}{...}
+{p2col :{cmd:testreg} {hline 2}  Exploratory analysis}{p_end}
+{p2colreset}{...}
+
+
+{marker Syntax}{...}
+{title:Syntax}
+
+{p 8 16 8}
+{cmd:testreg}
+{it:subcommand}
+{varlist}
+[{cmd:using} {it:filename}]
+{ifin}
+{cmd:,}
+{opt t:est(varlist)}
+{p_end}
+{p 16 16 2}
+[fe({varlist})
+ {opt m:ethod({name})}
+ {opt a:ccumulate}
+ {opt nocon:stant}
+ {opt vce:(passthru)}
+ {opt b:(3)}
+ {opt noar2}
+ {opt gap}
+ {opt nodep:vars}
+ {opt *}]
+
+{pstd}探索性计量分析。测试不同的核心解释变量、控制变量、固定效应集合、样本集以
+及被解释变量。再做完回归之后，以 {help esttab} 输出估计结果。选项 {opt *} 可以
+向 {help esttab} 传递参数。可以通过选项 {opt m:ethod} 传递回归方法，默认方法是
+{help reghdfe}，目前也只支持这种方法，将来可能会支持其他的方法。
+
+{pstd}参数 {opt subcommand} 用于标注本次分析测试的类别，目前支持的类别如下：
+
+{synoptset 20 tabbed}{...}
+{synopthdr: subcmmand}
+{synoptline}
+{synopt : {opt dep}}测试不同被解释变量的情况下的估计结果。此时 {opt t:est} 传递的是待检测的各被解释变量。
+
+{synopt : {opt core}}核心解释变量测试，此时 {opt t:est} 传递的是待检测的核心解释变量集。
+
+{synopt : {opt control}}控制变量测试，此时 {opt t:est} 传递的是待检测的控制变量集。
+
+{synopt : {opt fe}}固定效应检测，此时 {opt t:est} 传递的是待检测的固定效应集。
+对于那些所有回归中都需要加入的固定效应，则可以通过 {opt fe(varlist)} 传递。
+
+{synopt : {opt sample}}不同子样本检测。{opt t:est} 传递的用于表示样本的二值变量。
+
+
+
+{marker Options}{...}
+{title:Options}
+
+{synoptset 20 tabbed}{...}
+{synopthdr}
+{synoptline}
+
+{synopt:{opt t:est}}传递待检测的变量集，具体应该传递哪种变量集，取决于子命令。
+对于子命令 {cmd:core}, {cmd:control} 和 {cmd:fe}, 当设置选项 {opt a:ccumulate} 时，
+变量将以累加的方式加入各回归，负责采取逐一加入的方式。
+
+{synopt:{opt fe(varlist)}}所有回归都会加入的固定效应，写法取决于具体使用的回归
+命令。默认情况（{help reghfdfe}）下，单变量固定效应，直接写入变量列表即可，对
+于更复杂的情况请参考 {help reghdfe##absvar}
+
+{synopt:{opt m:ethod}}用于回归的命令，目前默认是，也只支持，{help reghdfe}。将
+来会做扩展，可能考虑增加对方法的检验。
+
+{synopt:{opt a:ccumulate}}用于设置检测变量的加入方式。对于子命令 {cmd:core},
+{cmd:control} 和 {cmd:fe}, 当设置选项 {opt a:ccumulate} 时，变量将以累加的方式
+加入各回归，负责采取逐一加入的方式。
+
+{synopt:{opt [no]con:stant}}用于设定输出表格是否包含常数项，参考 {help esttab}。
+
+{synopt:{opt vce(passthru)}}用于设定标准差的计算方法，参考 {help reghdfe##opt_vce}
+
+{synopt:{opt b(3)}}用于设定系数保留的小数点位数，参考 {help esttab}。
+
+{synopt:{opt [no]ar2}}用于设定是否在输出表格中包含 AR2 {help esttab}。
+
+{synopt:{opt gap}}控制变量回归结果之间的空白 {help esttab}。
+
+{synopt:{opt [no]dep:vars}}是否在输出结果中包含被解释变量 {help esttab}。
+
+{synopt:*} 其他将传递给 {help esttab} 的参数 {help esttab}。
+
+
+{marker exa}
+{title:Examples}
+
+{pstd}加载示例所需要的数据{p_end}
+{phang2}. {stata sysuse auto, clear}{p_end}
+
+{pstd}测试控制变量对估计结构的影响{p_end}
+{phang2}. {stata testreg control price weight, test(mpg headroom) fe(foreign) accu nocons replace}{p_end}
+
+{pstd}测试固定效应对估计结果的影响{p_end}
+{phang2}. {stata gen fe1 = mod(_n, 2) == 1}{p_end}
+{phang2}. {stata gen fe2 = mod(_n, 3) == 0}{p_end}
+{phang2}. {stata testreg fe price weight mpg, test(fe1 fe2) fe(foreign) replace}{p_end}
+
+{pstd}测试不同被解释变量的情况下的估计结果{p_end}
+{phang2}. {stata testreg dep weight mpg, test(price gear_ratio) fe(foreign) replace}{p_end}
+
+{pstd}测试样本选择对估计结果的影响{p_end}
+{phang2}. {stata testreg sample price weight mpg, test(fe1 fe2) fe(foreign) replace}{p_end}
+
