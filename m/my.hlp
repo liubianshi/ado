@@ -5,7 +5,7 @@
 {title:Title}
 
 {p2colset 5 16 2 2}{...}
-{p2col :{cmd:genlabel} {hline 2}  a generate wrapper for setting label and solve variable existence}{p_end}
+{p2col :{cmd:my} {hline 2}  a generate wrapper for setting label and solve variable existence}{p_end}
 {p2colreset}{...}
 
 {marker Syntax}{...}
@@ -13,7 +13,7 @@
 
 {p 8 16 8}
 [{cmd: by} {varlist}:]
-{cmd:genlabel}
+{cmd:my}
 [= exp]
 {ifin}
 [, {opt lable(name)}

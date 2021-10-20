@@ -1,5 +1,5 @@
-capture program drop genlabel
-program define genlabel, sortpreserve byable(onecall)
+capture program drop my
+program define my, sortpreserve byable(onecall)
     *! generate wrapper with addition option
     version 14
     syntax name(name=varname) [=exp] [if] [in] [, label(string) replace ignore *]
