@@ -7,7 +7,6 @@ program define my, sortpreserve byable(onecall)
     * 所以只能自己解析参数
     if strpos(`"`0'"', "=") {
         gettoken varname 0: 0, parse("=")
-        di "`varname'"
         if `:word count `varname'' == 2 {
             gettoken vartype varname: varname
         }
