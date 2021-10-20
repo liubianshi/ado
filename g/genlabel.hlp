@@ -1,0 +1,47 @@
+{smcl}
+{* *! version 0.0.9 2021-10-20}{...}
+{vieweralsosee "generate" "help generate"}{...}
+
+{title:Title}
+
+{p2colset 5 16 2 2}{...}
+{p2col :{cmd:genlabel} {hline 2}  a generate wrapper for setting label and solve variable existence}{p_end}
+{p2colreset}{...}
+
+{marker Syntax}{...}
+{title: syntax}
+
+{p 8 16 8}
+[{cmd: by} {varlist}:]
+{cmd:genlabel}
+[= exp]
+{ifin}
+[, {opt lable(name)}
+   {opt replace}
+   {opt ignore}
+   {it:other_options_for_generate}
+]
+
+{pstd} 在 stata 系统命令 {cmd:gen:erate} 的基础上附加两个额外的功能:
+
+{pstd}   1. 在新建变量的同时，设置变量的 variable label
+
+{pstd}   2. 在新建变量时，如果变量已经存在，通过 replace 或 ignore 选项做特殊处理
+
+
+{marker Options}{...}
+{title:Options}
+
+
+{synoptset 20 tabbed}{...}
+{synopthdr}
+{synoptline}
+
+{synopt:{opt label(name)}}传递新建变量的标签。
+
+{synopt:{opt replace}}变量存在时，替代原变量。
+
+{synopt:{opt ignore}}变量存在时，跳过变量的计算，但会重新设置变量的标签。
+
+{synopt:{opt other_options_for_generate}} {cmd:gen:erate} 命令可用到的其他选项。
+
