@@ -2,7 +2,26 @@ capture program drop my
 program define my, sortpreserve byable(onecall)
     *! generate wrapper with addition option
     version 14
-    syntax name(name=varname) [=exp] [if] [in] [, label(string) replace ignore *]
+
+    * stata 的 syntax 的 exp 有 bug，当表达式带引号时报错 （type mismatching）
+    * 所以只能自己解析参数
+    if strpos(`"`0'"', "=") {
+        gettoken varname 0: 0, parse("=")
+        di "`varname'"
+        if `:word count `varname'' == 2 {
+            gettoken vartype varname: varname
+        }
+        local expression = ""
+        while !regexm(`"`0'"', "^ *(if|in|,|$)") {
+            gettoken expr 0: 0, parse(", ") quotes
+            local expression = `"`expression' `expr'"'
+        }
+        local 0 = `"`varname' `0'"'
+    }
+    syntax name(name=varname) [if] [in] [, label(string) replace ignore *]
+    local exp = `"`expression'"'
+
+
     if "`replace'" != "" & "`ignore'" != "" {
         di as error "Cannot set replace and ignore simultaneously!"
         error 184
@@ -31,10 +50,10 @@ program define my, sortpreserve byable(onecall)
         rename `varname' `tmp'
         cap {
             if _by() {
-                by `_byvars': gen `varname' `exp' if `touse', `options'
+                by `_byvars': gen `vartype' `varname' `exp' if `touse', `options'
             }
             else {
-                gen `varname' `exp' if `touse', `options'
+                gen `vartype' `varname' `exp' if `touse', `options'
             }
         }
         if _rc {
