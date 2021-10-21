@@ -11,16 +11,16 @@ program define open, sortpreserve
         local shellout "open"
         local stdout "&>/dev/null"
     }
-    else if "`c(os)'" == "windows" ///
-        local shellout "start"
+    else if "`c(os)'" == "Windows" ///
+        local shellout ""
     else error 199
 
-    quietly python query
+    cap python query
     local python_exec = r(execpath)
     if "`python_exec'" != "" {
         quietly python: import os; os.system('`shellout' "`0'" `stdout' &')
     } 
     else {
-        winexec `shellout' `0' &
+        shell `shellout' `0' &
     }
 end
