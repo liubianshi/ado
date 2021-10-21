@@ -31,7 +31,8 @@ program testreg_reghdfe, nclass
          Accumulate                                       /// Join one by one or cumulatively
          noCONstant                                       /// Wether constant constant in report table
          Open                                             /// Wether open saved result
-         vce(passthru) noar2 noDEPvars gap b(integer 3) *                                  /// Parameters will be delivered to esttab
+         vce(passthru) noar2 noDEPvars                    ///
+		 gap b(integer 3) title(string) *                 /// Parameters will be delivered to esttab
          ]
     marksample basesample
 
@@ -93,6 +94,7 @@ program testreg_reghdfe, nclass
             gen `sample' = `basesample' & `t'
         else gen `sample' = `basesample'
         * run regress --------------------------------------------------------- {{{3
+		di _newline(2) as input `". reghdfe `dep' `indep' if `sample', `absorb_option' `constant' `vce'"'
         eststo, prefix("`R'") noesample: ///
             reghdfe `dep' `indep' if `sample', `absorb_option' `constant' `vce'
         * add extra macro ----------------------------------------------------- {{{2
@@ -114,9 +116,11 @@ program testreg_reghdfe, nclass
     if "`ar2'" != "noar2"         local ar2 = "ar2"
     if "`depvars'" != "nodepvars" local depvars = "depvars"
     if "`gap'" == ""              local gap = "nogap"
-    if `"`using'"' != "" local using2 = `"using "`using'""'
+    if `"`using'"' != ""          local using2 = `"using "`using'""'
+	if `"`title'"' == ""          local title = `"title("Anonymous Title")"'
+		else local title = `"title("`title'")"'
     esttab `R'* `using2', `replace' `scalars' `add_notes' ///
-        b(`b') `ar2' `depvars' `gap' order(`varlist_order') `options'
+        b(`b') `ar2' `depvars' `gap' order(`varlist_order') `title' `options'
 
     * open result ------------------------------------------------------------- {{{2
     if "`open'" != "" & `"`using'"' != "" open `using'

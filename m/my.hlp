@@ -9,7 +9,7 @@
 {p2colreset}{...}
 
 {marker Syntax}{...}
-{title: syntax}
+{title: Syntax}
 
 {p 8 16 8}
 [{cmd: by} {varlist}:]
