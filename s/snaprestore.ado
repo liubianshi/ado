@@ -10,6 +10,6 @@ program define snaprestore, nclass
         di as error "no snapshot with name: `name'"
         error 999
     }
-    snapshot restore ${SNAPSHOT_`name'}
+    quietly snapshot restore ${SNAPSHOT_`name'}
     macro drop SNAPSHOT_`name'
 end

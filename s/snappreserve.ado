@@ -12,6 +12,6 @@ program define snappreserve, nclass
         di as error "Snapshot `name' already exists"
         error 899
     }
-    snapshot save, label("`label'")
+    quietly snapshot save, label("`label'")
     global SNAPSHOT_`name' = r(snapshot)
 end
