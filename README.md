@@ -47,24 +47,22 @@ snaprestore [name]
 很多时候，数据处理需要对当前数据做破坏性操作，比如在内存中载入新的数据。
 此时，需要临时在内存中保存数据。`preserve` 和 `restore` 提供了不错的解决方案。
 
-但有三个不小的确定：
+但有三个小不足：
 
 1. 不允许嵌套
 2. 只能在局部起作用
 3. 在交互操作数据时，容易出现错误的 `restore`
 
-Stata 提供了 `snapshot` 作为补充，其功能强大，缺点时用起来麻烦。
+Stata 提供了 `snapshot` 作为补充，其功能强大，用起来有些变扭，远不如 `preserve` 和 `restore` 简洁。
 
-`snapshot` 保存 Snapshot 时依赖系统生成的序号，
-该序号具体取什么值，在调用命令时是很难预测的，
-其实也不应该去做这种预测。
-虽然可以借助其返回值 `r(snapshot)`, 用 Macro 保存 Snapshot 序号，
-但如果每次调用 `snapshot` 都要这样操作一遍，还是略显麻烦。
-如果能够用名称保存 Snapshot，并用相应的名称恢复 Snapshot 就再好不过了。
+`snapshot` 命令在保存 Snapshot 时依赖系统生成的序号，
+该序号具体取什么值，在调用命令时很难预测，也不应该去做这种预测。
 
-这就是 `snappreserve` 和 `snaprestore` 的出发点。
+我们可以借助返回值 `r(snapshot)`, 用 Macro 保存序号，以便恢复数据时调用，
+但如果每次保存恢复数据都要这样操作一遍，还是略显麻烦。
+如果能够用名称保存，用相应名称恢复就好了。
 
-例如：
+这就是 `snappreserve` 和 `snaprestore` 存在的价值。例如：
 
 ```stata
 di "Outer: `=_N'"
