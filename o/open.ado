@@ -3,12 +3,12 @@ program define open, sortpreserve
     *! open file from stata
     version 14
 
-    if "`c(os)'" == "Unix" {
-        local shellout "xdg-open"
+    if strpos("`c(machine_type)'", "Mac") | "`c(os)'" == "MacOSX" {
+        local shellout "open"
         local stdout "&>/dev/null"
     }
-    else if "`c(os)'" == "MacOSX" {
-        local shellout "open"
+    else if "`c(os)'" == "Unix" {
+        local shellout "xdg-open"
         local stdout "&>/dev/null"
     }
     else if "`c(os)'" == "Windows" ///
