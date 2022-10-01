@@ -4,28 +4,38 @@
 
 program dogen, rclass
     version 14
-    syntax namelist(min=1) [using/] [, Saving(string) replace]
+    syntax [namelist] [using/] [, Saving(string) replace clear]
 
-    local dofile "`using'"
-    if "`using'" == "" {
+    local dofile `"`using'"'
+    if `"`using'"' == "" {
         local dofile = `"`=subinstr("`namelist'", " ", "_", .)'.do"'
     }
 
-    local data "`saving'"
+    local data `"`saving'"'
     if "`data'" == "" {
-        if "`dir'" == "" {
-            local dir "./output"
-        }
-        local data `"`dir'/`=subinstr("`namelist'", " ", "_", .)'.dta"'
+        local data `"out/`=subinstr("`namelist'", " ", "_", .)'.dta"'
     }
 
-    return local varlist  "`namelist'"
-    return local dofile   "`dofile'"
-    return local datafile "`data'"
+    return local varlist  `"`namelist'"'
+    return local dofile   `"`dofile'"'
+    return local datafile `"`data'"'
 
-    capture confirm file "`data'"
+    capture confirm file `"`data'"'
     if _rc | "`replace'" != "" {
-        do "`dofile'"
+        local dofile_save_path_backup `"$DOFILE_SAVE_PATH"'
+        global DOFILE_SAVE_PATH `"`data'"'
+        preserve
+            cap do `"`dofile'"'
+            local rc = _rc
+        restore
+        global DOFILE_SAVE_PATH `"`dofile_save_path_backup'"'
+        if `rc' != 0 {
+            error `_rc'
+        }
+    }
+    
+    if `"`clear'"' != "" {
+        use `"`data'"', clear
     }
 end
 

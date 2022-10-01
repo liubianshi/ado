@@ -4,7 +4,12 @@ program define open, sortpreserve
     version 14
 
     if "`c(os)'" == "Unix" {
-        local shellout "xdg-open"
+        if `=strpos(`"`0'"', ".svg")' {
+            local shellout "display -density 600"
+        }
+        else {
+            local shellout "xdg-open"
+        }
         local stdout "&>/dev/null"
     }
     else if "`c(os)'" == "MacOSX" {

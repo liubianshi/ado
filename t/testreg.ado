@@ -1,7 +1,6 @@
 * Exploratory Regression
 * by: LUO Wei (liu.bian.shi@gmail.com)
 
-cap program drop testreg
 program testreg, nclass
     version 14
     *! use reghdfe for test regression analysis
