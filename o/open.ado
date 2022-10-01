@@ -12,8 +12,8 @@ program define open, sortpreserve
         }
         local stdout "&>/dev/null"
     }
-    else if "`c(os)'" == "MacOSX" {
-        local shellout "open"
+    else if "`c(os)'" == "Unix" {
+        local shellout "xdg-open"
         local stdout "&>/dev/null"
     }
     else if "`c(os)'" == "Windows" ///
