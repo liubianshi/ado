@@ -4,7 +4,7 @@
 program define addvar, sortpreserve rclass
 	version 14
 	#delimit ;
-	syntax newvarlist(min=1) [using], key(varlist min=1) [
+	syntax newvarlist(min=1) [using], [ key(varlist) 
 		Saving(passthru)
 		replace
 		mode(string)
@@ -14,6 +14,13 @@ program define addvar, sortpreserve rclass
 	if `"`mode'"' == "" {
 		local mode = "1:1"
 	}
+    if `"`key'$KEY"' == "" {
+        di "need keys for merge"
+        error 788
+    }
+    if `"`key'"' == "" {
+        local key "$KEY"
+    }
 	if `=!inlist(`"`mode'"', "1:1", "m:1", "1:m")' {
 		display as error "Match mode unacceptable, only accept 1:1, m:1 or 1:m"
 		error 123
