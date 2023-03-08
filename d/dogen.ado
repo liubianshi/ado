@@ -22,16 +22,10 @@ program dogen, rclass
 
     capture confirm file `"`data'"'
     if _rc | "`replace'" != "" {
-        local dofile_save_path_backup `"$DOFILE_SAVE_PATH"'
-        global DOFILE_SAVE_PATH `"`data'"'
         preserve
-            cap do `"`dofile'"'
-            local rc = _rc
+            do `"`dofile'"'
+            save `"`data'"', replace
         restore
-        global DOFILE_SAVE_PATH `"`dofile_save_path_backup'"'
-        if `rc' != 0 {
-            error `_rc'
-        }
     }
     
     if `"`clear'"' != "" {
