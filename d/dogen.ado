@@ -19,13 +19,13 @@ program dogen, rclass
         local data `"`dir'/`=subinstr("`namelist'", " ", "_", .)'.dta"'
     }
 
-    return local varlist  "`namelist'"
-    return local dofile   "`dofile'"
-    return local datafile "`data'"
-
     capture confirm file "`data'"
     if _rc | "`replace'" != "" {
         do "`dofile'"
     }
+
+    return local varlist  "`namelist'"
+    return local dofile   "`dofile'"
+    return local datafile "`data'"
 end
 

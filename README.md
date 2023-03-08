@@ -53,16 +53,14 @@ snaprestore [name]
 2. 只能在局部起作用
 3. 在交互操作数据时，容易出现错误的 `restore`
 
-Stata 提供了 `snapshot` 作为补充，其功能强大，用起来有些变扭，远不如 `preserve` 和 `restore` 简洁。
+Stata 提供了 `snapshot` 作为补充，其功能强大，但用起来有些变扭，远不如 `preserve` 和 `restore` 简洁。
+因为为了准确的恢复指定的 Snapshot，需要在调用 `snapshot save` 时，用 Macro 变
+量保存 Snapshot 的序号。写起来略显麻烦。
 
-`snapshot` 命令在保存 Snapshot 时依赖系统生成的序号，
-该序号具体取什么值，在调用命令时很难预测，也不应该去做这种预测。
+如果能够用名称保存，用相应名称恢复就好了。这也就是编写 `snappreserve` 和 `snaprestore` 的出发点。
 
-我们可以借助返回值 `r(snapshot)`, 用 Macro 保存序号，以便恢复数据时调用，
-但如果每次保存恢复数据都要这样操作一遍，还是略显麻烦。
-如果能够用名称保存，用相应名称恢复就好了。
 
-这就是 `snappreserve` 和 `snaprestore` 存在的价值。例如：
+例子：
 
 ```stata
 di "Outer: `=_N'"
