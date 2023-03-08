@@ -4,24 +4,28 @@
 
 program dogen, rclass
     version 14
-    syntax namelist(min=1) [using/] [, Saving(string) replace]
+    syntax [namelist] [using/] [, Saving(string) replace clear]
 
-    local dofile "`using'"
-    if "`using'" == "" {
+    local dofile `"`using'"'
+    if `"`using'"' == "" {
         local dofile = `"`=subinstr("`namelist'", " ", "_", .)'.do"'
     }
 
-    local data "`saving'"
+    local data `"`saving'"'
     if "`data'" == "" {
-        if "`dir'" == "" {
-            local dir "./output"
-        }
-        local data `"`dir'/`=subinstr("`namelist'", " ", "_", .)'.dta"'
+        local data `"out/`=subinstr("`namelist'", " ", "_", .)'.dta"'
     }
 
     capture confirm file "`data'"
     if _rc | "`replace'" != "" {
-        do "`dofile'"
+        preserve
+            do `"`dofile'"'
+            save `"`data'"', replace
+        restore
+    }
+    
+    if `"`clear'"' != "" {
+        use `"`data'"', clear
     }
 
     return local varlist  "`namelist'"

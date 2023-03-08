@@ -1,4 +1,3 @@
-capture program drop my
 program define my, sortpreserve byable(onecall)
     *! generate wrapper with addition option
     version 14
@@ -12,14 +11,13 @@ program define my, sortpreserve byable(onecall)
         }
         local expression = ""
         while !regexm(`"`0'"', "^ *(if|in|,|$)") {
-            gettoken expr 0: 0, parse(", ") quotes
+            gettoken expr 0: 0, parse(", ") quotes match(parns)
             local expression = `"`expression' `expr'"'
         }
         local 0 = `"`varname' `0'"'
     }
-    syntax name(name=varname) [if] [in] [, label(string) replace ignore *]
+    syntax name(name=varname) [if] [in] [, Label(string) Note(string) replace ignore *]
     local exp = `"`expression'"'
-
 
     if "`replace'" != "" & "`ignore'" != "" {
         di as error "Cannot set replace and ignore simultaneously!"
@@ -27,7 +25,7 @@ program define my, sortpreserve byable(onecall)
     }
 
     * 如果没有待表达式，那么该命令的作用变为给变量加标签
-    if `"`exp'"' == "" & `"`label'"' == "" {
+    if `"`exp'"' == "" & `"`label'"' == "" & `"`note'"' == "" {
         exit 0
     }
 
@@ -46,20 +44,20 @@ program define my, sortpreserve byable(onecall)
     * 变量已经存在，但用户设置了选项 replace
     if `rc' == 110 & `"`replace'"' != "" {
         tempvar tmp
-        rename `varname' `tmp'
         cap {
             if _by() {
-                by `_byvars': gen `vartype' `varname' `exp' if `touse', `options'
+                by `_byvars': gen `vartype' `tmp' `exp' if `touse', `options'
             }
             else {
-                gen `vartype' `varname' `exp' if `touse', `options'
+                gen `vartype' `tmp' `exp' if `touse', `options'
             }
         }
-        if _rc {
+        if !_rc {
+            drop `varname'
             rename `tmp' `varname'
         }
         else {
-            drop `tmp'
+            error _rc
         }
     }
 
@@ -75,6 +73,9 @@ program define my, sortpreserve byable(onecall)
 
     if `"`label'"' != "" {
         label variable `varname' `"`label'"'
+    }
+    if `"`note'"' != "" {
+        note `varname': `note'
     }
 
     exit 0 
