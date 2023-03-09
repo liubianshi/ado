@@ -18,7 +18,7 @@ program define get_varlist_from_wdi, sortpreserve rclass
     local vars       = ustrregexrf(`"`vars'"', "^ ", "")
     local indicators = ustrregexrf(`"`indicators'"', "^;", "")
 
-    syntax, [Country(string) Year(string) Language(string) Save(string) replace]
+    syntax, [Country(string) Year(string) Language(string) Save(string) replace clear]
     if `"`language'"' == "" {
         local language "en - English"
     }
@@ -31,33 +31,44 @@ program define get_varlist_from_wdi, sortpreserve rclass
     if `"`country'"' == "" | `"`year'"' == "" {
         error 229
     }
-    if `"`save'"' == "" {
-        local save = "output/`=ustrregexra(`"`vars'"', " ", "_")'.dta"
+    if `"`save'"' != "" & `"`replace'"' == ""{
+        cap confirm file `"`save'"'
+        if !_rc {
+            if `"`clear'"' != "" {
+                use `"`save'"', `clear' 
+            }
+            exit
+        }
     }
 
-    cap confirm file `"`save'"'
-    if _rc | `"`replace'"' != "" {
+    if `"`clear'"' == "" &  `"`save'"' != "" {
         preserve
-            wbopendata,                   ///
-                language("`language'")    ///
-                country("`country'")      ///
-                indicator("`indicators'") ///
-                year(`year')              ///
-                clear long
-            forvalue i = 1 / `:word count `vars'' {
-                local var_name      = `"`:word `i' of `vars''"'
-                local var_old_name  = r(varname`i')
-                local var_label     = r(varlabel`i')
-                local var_indicator = r(indicator`i')
-                local var_source    = r(source`i')
-                rename `var_old_name' `var_name'
-                label variable `var_name' "`var_label'"
-                note `var_name': `var_soure' (`var_indicator')
-            }
-            rename countrycode country
-            keep country year `vars'
-            save `"`save'"', replace
-        restore
+        clear
     }
-    return local file `"`save'"'
+    wbopendata,                   ///
+        language("`language'")    ///
+        country("`country'")      ///
+        indicator("`indicators'") ///
+        year(`year')              ///
+        `clear' long
+    forvalue i = 1 / `:word count `vars'' {
+        local  var_name       = `"`:word `i' of `vars''"'
+        local  var_old_name   = r(varname`i')
+        local  var_label      = r(varlabel`i')
+        local  var_indicator  = r(indicator`i')
+        local  var_source     = r(source`i')
+        rename `var_old_name' `var_name'
+        label  variable       `var_name'  "`var_label'"
+        note   `var_name':    `=ustrregexrf(`"`var_source'"', "^[^A-z]+", "")' (`var_indicator'), last visit date: $S_DATE
+    }
+    rename countrycode country
+    keep country year `vars'
+
+    if `"`save'"' != "" {
+        save `"`save'"', `replace' 
+        if `"`clear'"' == "" {
+            restore
+        }
+        return local file `"`save'"'
+    }
 end
