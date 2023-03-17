@@ -7,6 +7,8 @@
 cap program drop get_varlist_from_wdi
 program define get_varlist_from_wdi, sortpreserve rclass
     version 14
+
+    // handle syntax ---------------------------------------------------- {{{1
     gettoken var_pairs 0: 0, parse(",")
     if mod(`:word count `var_pairs'', 2) == 1 {
         error 228
@@ -15,33 +17,65 @@ program define get_varlist_from_wdi, sortpreserve rclass
         local vars        `"`vars' `:word `=`i' * 2 - 1' of `var_pairs''"'
         local indicators  `"`indicators';`:word `=`i' * 2' of `var_pairs''"'
     }
-    local vars       = ustrregexrf(`"`vars'"', "^ ", "")
+    local vars       = ustrregexrf(`"`vars'"',       "^ ", "")
     local indicators = ustrregexrf(`"`indicators'"', "^;", "")
 
-    syntax, [Country(string) Year(string) Language(string) Save(string) replace clear]
+    syntax, c(namelist min=1 max=1) t(namelist min=1 max=1) [ ///
+        COUNTRY(string) TIME(string)                          ///
+        Language(string)                                      ///
+        SAVE(string)                                          ///
+        replace clear add                                     ///
+        noGEN                                                 ///
+    ]
+
+    // handle option ---------------------------------------------------- {{{1
+    // handle option: language ------------------------------------------ {{{2
     if `"`language'"' == "" {
         local language "en - English"
     }
+
+    // handle option: country ------------------------------------------- {{{2
     if `"`country'"' == "" {
-        local country "$WDI_COUNTRY_LIST"
+        confirm string variable `c'
+        cap glevelsof `c', local(country) clean sep(";") silent
+        if _rc {
+            quietly levelsof `c', local(country) clean sep(";")
+        }
     }
-    if `"`year'"' == "" {
-        local year "$WDI_YEAR_LIST"
+
+    // handle option: time
+    if `"`time'"' == "" {
+        confirm numeric variable `t'
+        quietly sum `t', detail
+        local time_min = r(min)
+        local time_max = r(max)
+        local time `"`time_min':`time_max'"' 
     }
-    if `"`country'"' == "" | `"`year'"' == "" {
-        error 229
+
+    if `"`add'`save'`clear'"' == "" {
+        di "must set 'add', 'save', or 'clear'"
+        error 200
     }
+    if `"`add'"' != "" & `"`clear'"' != "" {
+        di "cannot set 'add' and 'clear' at the same time"
+        error 200
+    }
+
     if `"`save'"' != "" & `"`replace'"' == ""{
         cap confirm file `"`save'"'
         if !_rc {
             if `"`clear'"' != "" {
                 use `"`save'"', `clear' 
             }
+            if `"add"' != "" {
+                merge m:1 `c' `t' using `save', keep(master match) `gen'
+            }
             exit
         }
     }
 
-    if `"`clear'"' == "" &  `"`save'"' != "" {
+    // fetch data from wdi ---------------------------------------------- {{{1
+    if `"`clear'"' == "" {
         preserve
         clear
     }
@@ -49,7 +83,7 @@ program define get_varlist_from_wdi, sortpreserve rclass
         language("`language'")    ///
         country("`country'")      ///
         indicator("`indicators'") ///
-        year(`year')              ///
+        time(`time')              ///
         `clear' long
     forvalue i = 1 / `:word count `vars'' {
         local  var_name       = `"`:word `i' of `vars''"'
@@ -62,13 +96,22 @@ program define get_varlist_from_wdi, sortpreserve rclass
         note   `var_name':    `=ustrregexrf(`"`var_source'"', "^[^A-z]+", "")' (`var_indicator'), last visit date: $S_DATE
     }
     rename countrycode country
-    keep country year `vars'
+    keep country time `vars'
 
+    // save data -------------------------------------------------------- {{{1
     if `"`save'"' != "" {
         save `"`save'"', `replace' 
-        if `"`clear'"' == "" {
-            restore
-        }
         return local file `"`save'"'
+    }
+    if `"`add'"' != "" {
+        if `"`save'"' == "" {
+            tempfile save
+            save `save'
+        }
+        restore
+        merge m:1 `c' `t' using `save', keep(master match) `gen'
+    }
+    if `"`clear'"' == "" {
+        restore
     }
 end
