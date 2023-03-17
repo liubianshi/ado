@@ -19,9 +19,20 @@ program define get_varlist_from_wdi, sortpreserve rclass
     }
     local vars       = ustrregexrf(`"`vars'"',       "^ ", "")
     local indicators = ustrregexrf(`"`indicators'"', "^;", "")
+    foreach v of varlist `vars' {
+        cap confirm new variable `v'
+        if _rc {
+            local rc = _rc 
+            di as error "variablealready defined:    `v'"
+        }
+    }
+    if `"`rc'"' != "" {
+        di as error "r(`rc');"
+        exit
+    }
 
-    syntax, c(namelist min=1 max=1) t(namelist min=1 max=1) [ ///
-        COUNTRY(string) TIME(string)                          ///
+    syntax, c(namelist min=1 max=1) y(namelist min=1 max=1) [ ///
+        COUNTRY(string) YEAR(string)                          ///
         Language(string)                                      ///
         SAVE(string)                                          ///
         replace clear add                                     ///
@@ -43,13 +54,13 @@ program define get_varlist_from_wdi, sortpreserve rclass
         }
     }
 
-    // handle option: time
-    if `"`time'"' == "" {
-        confirm numeric variable `t'
-        quietly sum `t', detail
-        local time_min = r(min)
-        local time_max = r(max)
-        local time `"`time_min':`time_max'"' 
+    // handle option: year
+    if `"`year'"' == "" {
+        confirm numeric variable `y'
+        quietly sum `y', detail
+        local year_min = r(min)
+        local year_max = r(max)
+        local year `"`year_min':`year_max'"' 
     }
 
     if `"`add'`save'`clear'"' == "" {
@@ -68,7 +79,7 @@ program define get_varlist_from_wdi, sortpreserve rclass
                 use `"`save'"', `clear' 
             }
             if `"add"' != "" {
-                merge m:1 `c' `t' using `save', keep(master match) `gen'
+                merge m:1 `c' `y' using `save', keep(master match) `gen'
             }
             exit
         }
@@ -77,14 +88,13 @@ program define get_varlist_from_wdi, sortpreserve rclass
     // fetch data from wdi ---------------------------------------------- {{{1
     if `"`clear'"' == "" {
         preserve
-        clear
     }
     wbopendata,                   ///
         language("`language'")    ///
         country("`country'")      ///
         indicator("`indicators'") ///
-        time(`time')              ///
-        `clear' long
+        year("`year'")              ///
+        clear long
     forvalue i = 1 / `:word count `vars'' {
         local  var_name       = `"`:word `i' of `vars''"'
         local  var_old_name   = r(varname`i')
@@ -95,23 +105,23 @@ program define get_varlist_from_wdi, sortpreserve rclass
         label  variable       `var_name'  "`var_label'"
         note   `var_name':    `=ustrregexrf(`"`var_source'"', "^[^A-z]+", "")' (`var_indicator'), last visit date: $S_DATE
     }
-    rename countrycode country
-    keep country time `vars'
+    rename countrycode `c' 
+    rename year `y'
+    keep `c' `y' `vars'
 
     // save data -------------------------------------------------------- {{{1
     if `"`save'"' != "" {
         save `"`save'"', `replace' 
+        restore
+        if `"`add'"' != "" {
+            merge m:1 `c' `y' using `save', keep(master match) `gen'
+        }
         return local file `"`save'"'
     }
-    if `"`add'"' != "" {
-        if `"`save'"' == "" {
-            tempfile save
-            save `save'
-        }
+    else if `"`add'"' != "" {
+        tempfile temp
+        save `temp'
         restore
-        merge m:1 `c' `t' using `save', keep(master match) `gen'
-    }
-    if `"`clear'"' == "" {
-        restore
+        merge m:1 `c' `y' using `temp', keep(master match) `gen'
     }
 end
