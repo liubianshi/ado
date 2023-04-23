@@ -4,12 +4,15 @@
 
 program define snaprestore, nclass
     version 14
-    syntax [namelist(name=name max=1)]
+    syntax [namelist(name=name max=1)], [nodrop]
     if "`name'" == ""  local name = "default_snap_name"
     if "${SNAPSHOT_`name'}" == "" {
         di as error "no snapshot with name: `name'"
         error 999
     }
     quietly snapshot restore ${SNAPSHOT_`name'}
-    macro drop SNAPSHOT_`name'
+    if `"`drop'"' != "nodrop" {
+        snapshot erase ${SNAPSHOT_`name'}
+        macro drop SNAPSHOT_`name'
+    }
 end
