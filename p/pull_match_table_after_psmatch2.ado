@@ -1,4 +1,4 @@
-program define pull_match_table_after_psmatch2, sortpreserve
+program define pull_match_table_after_psmatch2, sortpreserve rclass
     syntax using/, [id(varname) replace]
 
     confirm numeric variable _nn _id _n1 _pscore
@@ -36,9 +36,22 @@ program define pull_match_table_after_psmatch2, sortpreserve
             replace `id'    = _n`i'_id     if _group == `i'
             replace _pscore = _n`i'_pscore if _group == `i'
         }
+        
         keep  `id' _pscore _group  _match_id
         order `id' _group  _pscore _match_id
+
         save `"`using'"', nolabel `replace'
+
+        return scalar ratio = `ratio'
+        quietly {
+            count if _group == 0
+            return scalar treat_matched = r(N)
+
+            keep if _group != . & _group > 0
+            duplicates drop
+            count
+            return scalar control_matched = r(N)
+        }
     restore
 end
 
